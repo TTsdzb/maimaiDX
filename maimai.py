@@ -324,11 +324,13 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
 async def day_mai(bot: NoneBot, ev: CQEvent):
     uid = ev.user_id
     msg = f'{BOTNAME} Bot提醒您：打机时不要大力拍打或滑动哦\n明日推荐歌曲：'
+    songs = ''
     for i in range(30):
         h, m, d = hash_shift_date(uid, i)
         h >>= 22
         music = mai.total_list[h % len(mai.total_list)]
-        msg += f'\n{m}.{d}: {music.title}'
+        songs += f'{m}.{d}: {music.title}\n'
+    msg += MessageSegment.image(image_to_base64(text_to_image(songs)))
     await bot.send(ev, msg, at_sender=True)
 
 
