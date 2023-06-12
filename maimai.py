@@ -320,6 +320,18 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
     await bot.send(ev, msg, at_sender=True)
 
 
+@sv.on_fullmatch(['本月mai', '本月舞萌'])
+async def day_mai(bot: NoneBot, ev: CQEvent):
+    uid = ev.user_id
+    msg = f'{BOTNAME} Bot提醒您：打机时不要大力拍打或滑动哦\n明日推荐歌曲：'
+    for i in range(30):
+        h, m, d = hash_shift_date(uid, 1)
+        h >>= 22
+        music = mai.total_list[h % len(mai.total_list)]
+        msg += f'{m}.{d}: {music.title}'
+    await bot.send(ev, msg, at_sender=True)
+
+
 @sv.on_suffix(['是什么歌', '是啥歌'])
 async def what_song(bot: NoneBot, ev: CQEvent):
     name: str = ev.message.extract_plain_text().strip().lower()
