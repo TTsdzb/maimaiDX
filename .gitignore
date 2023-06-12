@@ -139,3 +139,6 @@ arcades.json
 .idea/
 *.ipr
 *.iws
+
+# library files
+hoshino/

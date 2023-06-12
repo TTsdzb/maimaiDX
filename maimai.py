@@ -24,6 +24,7 @@ sv_help = '''
 帮助maimaiDX 查看指令帮助
 项目地址maimaiDX 查看项目地址
 今日mai,今日舞萌,今日运势 查看今天的舞萌运势
+明日mai,明日舞萌,明日运势 查看明天的舞萌运势
 XXXmaimaiXXX什么 随机一首歌
 随个[dx/标准][绿黄红紫白]<难度> 随机一首指定条件的乐曲
 [查歌/search]<乐曲标题的一部分> 查询符合条件的乐曲
@@ -295,6 +296,29 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
     music = mai.total_list[h % len(mai.total_list)]
     msg += await draw_music_info(music)
     await bot.send(ev, msg, at_sender=True)
+
+
+@sv.on_fullmatch(['明日mai', '明日舞萌', '明日运势'])
+async def day_mai(bot: NoneBot, ev: CQEvent):
+    wm_list = ['拼机', '推分', '越级', '下埋', '夜勤', '练底力', '练手法', '打旧框', '干饭', '抓绝赞', '收歌']
+    uid = ev.user_id
+    h = hash_shift(uid, 1)
+    rp = h % 100
+    wm_value = []
+    for i in range(11):
+        wm_value.append(h & 3)
+        h >>= 2
+    msg = f'\n明日人品值：{rp}\n'
+    for i in range(11):
+        if wm_value[i] == 3:
+            msg += f'宜 {wm_list[i]}\n'
+        elif wm_value[i] == 0:
+            msg += f'忌 {wm_list[i]}\n'
+    msg += f'{BOTNAME} Bot提醒您：打机时不要大力拍打或滑动哦\n明日推荐歌曲：'
+    music = mai.total_list[h % len(mai.total_list)]
+    msg += await draw_music_info(music)
+    await bot.send(ev, msg, at_sender=True)
+
 
 @sv.on_suffix(['是什么歌', '是啥歌'])
 async def what_song(bot: NoneBot, ev: CQEvent):
