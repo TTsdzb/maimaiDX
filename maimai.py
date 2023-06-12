@@ -328,7 +328,7 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
         h, m, d = hash_shift_date(uid, i)
         h >>= 22
         music = mai.total_list[h % len(mai.total_list)]
-        msg += f'{m}.{d}: {music.title}\n'
+        msg += f'\n{m}.{d}: {music.title}'
     await bot.send(ev, msg, at_sender=True)
 
 
