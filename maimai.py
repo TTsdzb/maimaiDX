@@ -323,7 +323,7 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
 @sv.on_fullmatch(['本月mai', '本月舞萌'])
 async def day_mai(bot: NoneBot, ev: CQEvent):
     uid = ev.user_id
-    msg = f'{BOTNAME} Bot提醒您：打机时不要大力拍打或滑动哦\n明日推荐歌曲：'
+    msg = f'{BOTNAME} Bot提醒您：打机时不要大力拍打或滑动哦\n本月推荐歌曲：'
     songs = ''
     for i in range(30):
         h, m, d = hash_shift_date(uid, i)
