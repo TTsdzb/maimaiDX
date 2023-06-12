@@ -1,0 +1,6 @@
+pillow
+aiofiles
+aiohttp
+pyecharts
+snapshot-phantomjs
+pydantic
