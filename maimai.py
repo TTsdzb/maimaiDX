@@ -302,7 +302,7 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
 async def day_mai(bot: NoneBot, ev: CQEvent):
     wm_list = ['拼机', '推分', '越级', '下埋', '夜勤', '练底力', '练手法', '打旧框', '干饭', '抓绝赞', '收歌']
     uid = ev.user_id
-    h = hash_shift(uid, 1)
+    h, _, _ = hash_shift_date(uid, 1)
     rp = h % 100
     wm_value = []
     for i in range(11):
