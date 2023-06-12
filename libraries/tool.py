@@ -15,9 +15,9 @@ def hash_shift(qq: int, shift: int):
 
 def hash_shift_date(qq: int, shift: int):
     timestamp = time.time() + shift * 86400
-    month = int(time.strftime("%m", time.localtime(time.time())))
-    date = int(time.strftime("%d", time.localtime(time.time())))
-    days = date + 31 * month + 77 + shift
+    month = int(time.strftime("%m", time.localtime(timestamp)))
+    date = int(time.strftime("%d", time.localtime(timestamp)))
+    days = date + 31 * month + 77
     return (days * qq) >> 8, month, date
 
 
