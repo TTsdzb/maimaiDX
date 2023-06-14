@@ -316,7 +316,7 @@ class MaiMusic:
         """
         开始猜歌
         """
-        self.music = Music(random.choice(self.guess_data))
+        self.music = Music(**random.choice(self.guess_data).dict())
         self.guess_options = [
             f'的 Expert 难度是 {self.music.level[2]}',
             f'的 Master 难度是 {self.music.level[3]}',
