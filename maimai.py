@@ -13,7 +13,7 @@ from hoshino.typing import CommandSession, CQEvent, MessageSegment
 from . import *
 from .libraries.image import *
 from .libraries.maimaidx_api_data import *
-from .libraries.maimaidx_music import alias, guess, mai
+from .libraries.maimaidx_music import alias, guess, mai, update_local_alias
 from .libraries.maimaidx_project import *
 from .libraries.tool import *
 
@@ -71,20 +71,12 @@ SV_HELP = '请使用 帮助maimaiDX 查看帮助'
 sv = Service('maimaiDX', manage_priv=priv.ADMIN, enable_on_default=False, help_=SV_HELP)
 sv_arcade = Service('maimaiDX排卡', manage_priv=priv.ADMIN, enable_on_default=False, help_=SV_HELP)
 
-def song_level(ds1: float, ds2: float, stats1: str = None, stats2: str = None) -> list:
+def song_level(ds1: float, ds2: float) -> list:
     result = []
     music_data = mai.total_list.filter(ds=(ds1, ds2))
-    if stats1:
-        if stats2:
-            stats1 = stats1 + ' ' + stats2
-            stats1 = stats1.title()
-        for music in sorted(music_data, key=lambda i: int(i.id)):
-            for i in music.diff:
-                result.append((music.id, music.title, music.ds[i], diffs[i], music.level[i]))
-    else:
-        for music in sorted(music_data, key=lambda i: int(i.id)):
-            for i in music.diff:
-                result.append((music.id, music.title, music.ds[i], diffs[i], music.level[i]))
+    for music in sorted(music_data, key=lambda i: int(i.id)):
+        for i in music.diff:
+            result.append((music.id, music.title, music.ds[i], diffs[i], music.level[i]))
     return result
 
 
@@ -113,29 +105,30 @@ async def dx_github(bot: NoneBot, ev: CQEvent):
 @sv.on_prefix(['定数查歌', 'search base'])
 async def search_dx_song_level(bot: NoneBot, ev: CQEvent):
     args = ev.message.extract_plain_text().strip().split()
-    if len(args) > 4 or len(args) == 0:
-        await bot.finish(ev, '命令格式为\n定数查歌 <定数>\n定数查歌 <定数下限> <定数上限>', at_sender=True)
+    if len(args) > 3 or len(args) == 0:
+        await bot.finish(ev, '命令格式为\n定数查歌 <定数> [页数]\n定数查歌 <定数下限> <定数上限> [页数]', at_sender=True)
+    page = 1
     if len(args) == 1:
         result = song_level(float(args[0]), float(args[0]))
     elif len(args) == 2:
-        try:
+        if float(args[1]) > float(args[0]):
             result = song_level(float(args[0]), float(args[1]))
-        except:
-            result = song_level(float(args[0]), float(args[0]), str(args[1]))
-    elif len(args) == 3:
-        try:
-            result = song_level(float(args[0]), float(args[1]), str(args[2]))
-        except:
-            result = song_level(float(args[0]), float(args[0]), str(args[1]), str(args[2]))
+        else:
+            result = song_level(float(args[0]), float(args[0]))
+            page = int(args[1])
     else:
-        result = song_level(float(args[0]), float(args[1]), str(args[2]), str(args[3]))
+        result = song_level(float(args[0]), float(args[1]))
+        page = int(args[2])
     if not result:
         await bot.finish(ev, f'没有找到这样的乐曲。', at_sender=True)
-    if len(result) >= 60:
-        await bot.finish(ev, f'结果过多（{len(result)} 条），请缩小搜索范围', at_sender=True)
+    # if len(result) >= 60:
+    #     await bot.finish(ev, f'结果过多（{len(result)} 条），请缩小搜索范围', at_sender=True)
     msg = ''
-    for i in result:
-        msg += f'{i[0]}. {i[1]} {i[3]} {i[4]}({i[2]})\n'
+    page = max(min(page, len(result) // SONGS_PER_PAGE + 1), 1)
+    for i, r in enumerate(result):
+        if (page - 1) * SONGS_PER_PAGE <= i < page * SONGS_PER_PAGE:
+            msg += f'{r[0]}. {r[1]} {r[3]} {r[4]}({r[2]})\n'
+    msg += f'第{page}页，共{len(result) // SONGS_PER_PAGE + 1}页'
     await bot.send(ev, MessageSegment.image(image_to_base64(text_to_image(msg.strip()))), at_sender=True)
 
 @sv.on_prefix(['bpm查歌', 'search bpm'])
@@ -378,6 +371,25 @@ async def how_song(bot: NoneBot, ev: CQEvent):
     msg += '\n'.join(alias[0].Alias)
     await bot.send(ev, msg, at_sender=True)
 
+@sv.on_prefix(['添加本地别名', '添加本地别称'])
+async def apply_local_alias(bot: NoneBot, ev: CQEvent):
+    args: list[str] = ev.message.extract_plain_text().strip().split()
+    id, alias_name = args
+    if not mai.total_list.by_id(id):
+        await bot.finish(ev, f'未找到ID为 [{id}] 的曲目')
+    server_exist = await get_music_alias('alias', {'id': id})
+    if alias_name in server_exist[id]:
+        await bot.finish(ev, f'该曲目的别名 <{alias_name}> 已存在别名服务器，不能重复添加别名，如果bot未生效，请联系BOT管理员使用指令 <更新别名库>')
+    local_exist = mai.total_alias_list.by_alias(alias_name)
+    if local_exist:
+        await bot.finish(ev, f'本地别名库已存在该别名', at_sender=True)
+    issave = await update_local_alias(id, alias_name)
+    if not issave:
+        msg = '添加本地别名失败'
+    else:
+        msg = f'已成功为ID <{id}> 添加别名 <{alias_name}> 到本地别名库'
+    await bot.send(ev, msg, at_sender=True)
+
 @sv.on_prefix(['添加别名', '增加别名', '增添别名', '添加别称'])
 async def apply_alias(bot: NoneBot, ev: CQEvent):
     args: list[str] = ev.message.extract_plain_text().strip().split()
@@ -390,7 +402,7 @@ async def apply_alias(bot: NoneBot, ev: CQEvent):
         await bot.finish(ev, f'未找到ID为 [{id}] 的曲目')
     isexist = await get_music_alias('alias', {'id': id})
     if alias_name in isexist[id]:
-        await bot.finish(ev, f'该曲目的别名 <{alias_name}> 已存在，不能重复添加别名')
+        await bot.finish(ev, f'该曲目的别名 <{alias_name}> 已存在，不能重复添加别名，如果bot未生效，请联系BOT管理员使用指令 <更新别名库>')
     tag = ''.join(sample(ascii_uppercase + digits, 5))
     status = await post_music_alias('apply', {'id': id, 'aliasname': alias_name, 'tag': tag, 'uid': ev.user_id})
     if 'error' in status:
@@ -466,6 +478,16 @@ async def _(session: CommandSession):
         await session.send('已全局开启maimai别名推送')
     else:
         return
+
+@sucmd('updatealias', aliases=('更新别名库'))
+async def _(session: CommandSession):
+    try:
+        await mai.get_music_alias()
+        log.error('手动更新别名库成功')
+        await session.send('手动更新别名库成功')
+    except:
+        log.error('手动更新别名库失败')
+        await session.send('手动更新别名库失败')
 
 @sv.scheduled_job('interval', minutes=5)
 async def alias_apply_status():
