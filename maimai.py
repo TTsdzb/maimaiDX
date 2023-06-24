@@ -989,7 +989,7 @@ async def unsubscribe_arcade(bot: NoneBot, ev: CQEvent):
     
     await bot.send(ev, msg, at_sender=True)
 
-@sv_arcade.on_prefix(['查找机厅', '查询机厅', '机厅查找', '查找机厅', '机厅查询', '查询机厅', '搜素机厅', '机厅搜素'])
+@sv_arcade.on_prefix(['查找机厅', '查询机厅', '机厅查找', '机厅查询', '查询机厅', '搜索机厅', '机厅搜索'])
 async def search_arcade(bot: NoneBot, ev: CQEvent):
     args: str = ev.message.extract_plain_text().strip().lower()
     if not args:
