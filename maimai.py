@@ -715,6 +715,8 @@ async def plate_process(bot: NoneBot, ev: CQEvent):
     
     if match.group(1) in ['霸', '舞']:
         payload['version'] = list(set(version for version in list(plate_to_version.values())[:-9]))
+    elif match.group(1) == '真':
+        payload['version'] = list(set(version for version in list(plate_to_version.values())[0:2]))
     else:
         payload['version'] = [plate_to_version[match.group(1)]]
 
@@ -1033,6 +1035,36 @@ async def arcade_person(bot: NoneBot, ev: CQEvent):
 
         await bot.send(ev, msg, at_sender=True)
     except: pass
+
+@sv_arcade.on_fullmatch(['机厅几人', 'jtj'])
+async def arcade_query_multiple(bot: NoneBot, ev: CQEvent):
+    gid = ev.group_id
+    group_arcades: Dict[str, list] = {}
+
+    for a in arcades:
+        for group_id in a['group']:
+            if group_id not in group_arcades:
+                group_arcades[group_id] = []
+            group_arcades[group_id].append(a)
+
+    if gid in group_arcades:
+        arcade = group_arcades[gid]
+    else:
+        await bot.finish(ev, '该群未配置任何机厅', at_sender=True)
+
+    result = []
+    for a in arcade:
+        msg = f'{a["name"]}有{a["person"]}人\n'
+        if a['num'] > 1:
+            msg += f'机均{a["person"] / a["num"]:.2f}人\n'
+        if a['by']:
+            msg += f'由{a["by"]}更新于{a["time"]}'
+        result.append(msg)
+
+    if result:
+        await bot.send(ev, '\n'.join(result), at_sender=False)
+    else:
+        await bot.send(ev, '该群未配置任何机厅', at_sender=True)
 
 @sv_arcade.on_suffix(['有多少人', '有几人', '有几卡', '多少人', '多少卡', '几人', 'jr', '几卡'])
 async def arcade_query_person(bot: NoneBot, ev: CQEvent):
