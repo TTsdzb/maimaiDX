@@ -103,7 +103,7 @@ class DrawBest:
 
     def __init__(self, UserInfo: UserInfo, qqId: Optional[Union[int, str]] = None) -> None:
 
-        self.userName = UserInfo.username
+        self.userName = UserInfo.nickname
         self.plate = UserInfo.plate
         self.addRating = UserInfo.additional_rating
         self.Rating = UserInfo.rating
@@ -241,7 +241,7 @@ class DrawBest:
         rating = Image.open(os.path.join(self.maimai_dir, 'UI_CMN_Shougou_Rainbow.png')).resize((454, 50))
         self._diff = [basic, advanced, expert, master, remaster]
         self.dxstar = [Image.open(os.path.join(self.maimai_dir, f'UI_RSL_DXScore_Star_0{_ + 1}.png')).resize((20, 20)) for _ in range(3)]
-        self.rank = {'d': 'D', 'c': 'c', 'b': 'B', 'bb': 'BB', 'bbb': 'BBB', 'a': 'A', 'aa': 'AA', 'aaa': 'AAA', 's': 'S', 'sp': 'Sp', 'ss': 'SS', 'ssp': 'SSp', 'sss': 'SSS', 'sssp': 'SSSp'}
+        self.rank = {'d': 'D', 'c': 'C', 'b': 'B', 'bb': 'BB', 'bbb': 'BBB', 'a': 'A', 'aa': 'AA', 'aaa': 'AAA', 's': 'S', 'sp': 'Sp', 'ss': 'SS', 'ssp': 'SSp', 'sss': 'SSS', 'sssp': 'SSSp'}
         self.fcl = {'fc': 'FC', 'fcp': 'FCp', 'ap': 'AP', 'app': 'APp'}
         self.fsl = {'fs': 'FS', 'fsp': 'FSp', 'fsd': 'FSD', 'fsdp': 'FSDp'}
 
