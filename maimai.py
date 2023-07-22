@@ -322,7 +322,7 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
         h, m, d = hash_shift_date(uid, i)
         h >>= 22
         music = mai.total_list[h % len(mai.total_list)]
-        songs += f'{m}.{d}: {music.title}\n'
+        songs += f'{m}.{d}: id{music.id} - {music.title}\n'
     msg += MessageSegment.image(image_to_base64(text_to_image(songs.strip())))
     await bot.send(ev, msg, at_sender=True)
 
