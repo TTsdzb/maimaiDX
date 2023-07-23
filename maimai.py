@@ -292,7 +292,7 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
 
 
 @sv.on_fullmatch(['明日mai', '明日舞萌', '明日运势'])
-async def day_mai(bot: NoneBot, ev: CQEvent):
+async def tomorrow_mai(bot: NoneBot, ev: CQEvent):
     wm_list = ['拼机', '推分', '越级', '下埋', '夜勤', '练底力', '练手法', '打旧框', '干饭', '抓绝赞', '收歌']
     uid = ev.user_id
     h, _, _ = hash_shift_date(uid, 1)
@@ -314,7 +314,7 @@ async def day_mai(bot: NoneBot, ev: CQEvent):
 
 
 @sv.on_fullmatch(['本月mai', '本月舞萌'])
-async def day_mai(bot: NoneBot, ev: CQEvent):
+async def month_mai(bot: NoneBot, ev: CQEvent):
     uid = ev.user_id
     msg = f'{BOTNAME} Bot提醒您：打机时不要大力拍打或滑动哦\n本月推荐歌曲：'
     songs = ''
