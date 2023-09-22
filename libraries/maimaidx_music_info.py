@@ -23,7 +23,7 @@ async def draw_music_info(music: Music) -> MessageSegment:
     """
     im = Image.open(os.path.join(maimaidir, 'music_bg.png')).convert('RGBA')
     genre = Image.open(os.path.join(maimaidir, f'music-{category[music.basic_info.genre]}.png'))
-    cover = Image.open(await download_music_pictrue(music.id)).resize((360, 360))
+    cover = Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((360, 360))
     ver = Image.open(os.path.join(maimaidir, f'{music.type}.png')).resize((94, 35))
     line = Image.new('RGBA', (400, 2), (255, 255, 255, 255))
 
@@ -82,7 +82,7 @@ async def music_play_data(payload: dict, songs: str) -> Union[str, MessageSegmen
     tb = DrawText(dr, TBFONT)
     sy = DrawText(dr, SIYUAN)
 
-    im.alpha_composite(Image.open(await download_music_pictrue(music.id)).resize((235, 235)), (65, 165))
+    im.alpha_composite(Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((235, 235)), (65, 165))
     im.alpha_composite(Image.open(os.path.join(maimaidir, f'{music.basic_info.version}.png')).resize((150, 72)), (690, 335))
     im.alpha_composite(Image.open(os.path.join(maimaidir, f'{music.type}.png')).resize((80, 30)), (600, 368))
 
@@ -154,7 +154,7 @@ async def music_play_data_dev(payload: dict, songs: str) -> Union[str, MessageSe
     tb = DrawText(dr, TBFONT)
     sy = DrawText(dr, SIYUAN)
 
-    im.alpha_composite(Image.open(await download_music_pictrue(music.id)).resize((235, 235)), (65, 165))
+    im.alpha_composite(Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((235, 235)), (65, 165))
     im.alpha_composite(Image.open(os.path.join(maimaidir, f'{music.basic_info.version}.png')).resize((150, 72)), (690, 335))
     im.alpha_composite(Image.open(os.path.join(maimaidir, f'{music.type}.png')).resize((80, 30)), (600, 368))
 

@@ -475,7 +475,7 @@ class Guess:
         ], 6)
         answer = mai.total_alias_list.by_id(music.id)[0].Alias
         answer.append(music.id)
-        img = Image.open(await download_music_pictrue(music.id))
+        img = Image.open(await download_music_pictrue(music.id).convert("RGBA"))
         w, h = img.size
         w2, h2 = int(w / 3), int(h / 3)
         l, u = random.randrange(0, int(2 * w / 3)), random.randrange(0, int(2 * h / 3))

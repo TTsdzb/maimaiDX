@@ -107,7 +107,7 @@ class DrawBest:
             else:
                 x += 416
 
-            cover = Image.open(await download_music_pictrue(info.song_id)).resize((135, 135))
+            cover = Image.open(await download_music_pictrue(info.song_id)).convert("RGBA").resize((135, 135))
             version = Image.open(os.path.join(maimaidir, f'UI_RSL_MBase_Parts_{info.type}.png')).resize((55, 19))
             rate = Image.open(os.path.join(maimaidir, f'UI_TTR_Rank_{score_Rank[info.rate]}.png')).resize((95, 44))
 
