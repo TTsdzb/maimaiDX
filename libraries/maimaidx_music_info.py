@@ -227,7 +227,7 @@ async def new_draw_music_info(music: Music) -> str:
     
     default_color = (140, 44, 213, 255)
     
-    im.alpha_composite(Image.open(await download_music_pictrue(music.id)).convert("RGBA"), (205, 305))
+    im.alpha_composite(Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((400, 400)), (205, 305))
     im.alpha_composite(Image.open(maimaidir / f'{music.basic_info.version}.png').resize((250, 120)), (1340, 590))
     im.alpha_composite(Image.open(maimaidir / f'{music.type}.png'), ((1150, 643)))
     
