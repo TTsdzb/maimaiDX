@@ -1,9 +1,6 @@
-pillow
 aiofiles
 aiohttp
+Pillow
+pydantic
 pyecharts
 snapshot-phantomjs
-pydantic
-
-nonebot[scheduler]
-aiocqhttp
