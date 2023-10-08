@@ -39,7 +39,7 @@ class ArcadeList(List[Arcade]):
                 arcade_list.append(arcade)
             elif name in arcade.location:
                 arcade_list.append(arcade)
-            if name in arcade.alias:
+            elif name in arcade.alias:
                 arcade_list.append(arcade)
                 
         return arcade_list
@@ -176,7 +176,7 @@ async def download_arcade_info(save: bool = True) -> ArcadeList:
             for num in range(len(arcadelist)):
                 arcadelist[num] = Arcade(**arcade.arcades[num])
         if save:
-            await writefile(arcades_json, arcade.arcades)
+            await writefile(arcades_json, [_.model_dump() for _ in arcadelist])
     except Exception:
         loga.error(f'Error: {traceback.format_exc()}')
         loga.error('获取机厅信息失败')
