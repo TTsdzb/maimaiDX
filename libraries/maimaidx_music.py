@@ -457,8 +457,8 @@ class Guess:
         answer.append(music.id)
         img = Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((400, 400))
         w, h = img.size
-        w2, h2 = int(w / 3), int(h / 3)
-        l, u = random.randrange(0, int(2 * w / 3)), random.randrange(0, int(2 * h / 3))
+        w2, h2 = int(w / 2), int(h / 2)
+        l, u = random.randrange(0, int(w / 2)), random.randrange(0, int(h / 2))
         img = img.crop((l, u, l+w2, u+h2))
         self.is_end = False
         return GuessData(**{
