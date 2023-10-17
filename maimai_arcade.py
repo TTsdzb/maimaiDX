@@ -204,7 +204,7 @@ async def arcade_person(bot: NoneBot, ev: CQEvent):
                     _arcade.append(_a)
                     break
             if not _arcade:
-                msg = '已订阅的机厅中未找到该机厅'
+                return
             else:
                 msg = await update_person(_arcade, nickname, value, person)
 
