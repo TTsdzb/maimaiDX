@@ -15,7 +15,6 @@ def hash_shift_date(qq: int, shift: int):
     return (days * qq) >> 8, month, date
 
 
-
 def render_forward_msg(msg_list: list, uid: int=10001, name: str='maimaiDX'):
     forward_msg = []
     for msg in msg_list:

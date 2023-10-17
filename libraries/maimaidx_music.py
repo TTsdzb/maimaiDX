@@ -1,11 +1,10 @@
 import asyncio
-import json
 import random
 import traceback
 from collections import namedtuple
 from copy import deepcopy
 from io import BytesIO
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, Tuple, Union
 
 import aiofiles
 import aiohttp
@@ -18,7 +17,6 @@ from .maimaidx_api_data import *
 
 
 class Stats(BaseModel):
-
     cnt: Optional[float] = None
     diff: Optional[str] = None
     fit_diff: Optional[float] = None
@@ -34,13 +32,11 @@ Notes2 = namedtuple('Notes', ['tap', 'hold', 'slide', 'touch', 'brk'])
 
 
 class Chart(BaseModel):
-
     notes: Optional[Union[Notes1, Notes2]]
     charter: Optional[str] = None
 
 
 class BasicInfo(BaseModel):
-
     title: Optional[str]
     artist: Optional[str]
     genre: Optional[str]
@@ -50,7 +46,9 @@ class BasicInfo(BaseModel):
     is_new: Optional[bool]
 
 
-def cross(checker: Union[List[str], List[float]], elem: Optional[Union[str, float, List[str], List[float], Tuple[float, float]]], diff: List[int]) -> Tuple[bool, List[int]]:
+def cross(checker: Union[List[str], List[float]],
+          elem: Optional[Union[str, float, List[str], List[float], Tuple[float, float]]], diff: List[int]) -> Tuple[
+    bool, List[int]]:
     ret = False
     diff_ret = []
     if not elem or elem is Ellipsis:
@@ -82,7 +80,8 @@ def cross(checker: Union[List[str], List[float]], elem: Optional[Union[str, floa
     return ret, diff_ret
 
 
-def in_or_equal(checker: Union[str, int], elem: Optional[Union[str, float, List[str], List[float], Tuple[float, float]]]) -> bool:
+def in_or_equal(checker: Union[str, int],
+                elem: Optional[Union[str, float, List[str], List[float], Tuple[float, float]]]) -> bool:
     if elem is Ellipsis:
         return True
     if isinstance(elem, List):
@@ -94,7 +93,6 @@ def in_or_equal(checker: Union[str, int], elem: Optional[Union[str, float, List[
 
 
 class Music(BaseModel):
-
     id: Optional[str] = None
     title: Optional[str] = None
     type: Optional[str] = None
@@ -108,7 +106,6 @@ class Music(BaseModel):
 
 
 class RaMusic(BaseModel):
-    
     id: str
     ds: float
     lv: str
@@ -116,7 +113,7 @@ class RaMusic(BaseModel):
 
 
 class MusicList(List[Music]):
-    
+
     def by_id(self, music_id: str) -> Optional[Music]:
         for music in self:
             if music.id == music_id:
@@ -128,16 +125,16 @@ class MusicList(List[Music]):
             if music.title == music_title:
                 return music
         return None
-    
-    def by_level(self, level: Union[str, List[str]], byid: bool = False) -> Optional[Union[List[Music], List[str]]]:
-        levelList = []             
-        if isinstance(level, str):
-            levelList = [music.id if byid else music for music in self if level in music.level]
-        else:
-            levelList = [music.id if byid else music for music in self for lv in level if lv in music.level]
-        return levelList
 
-    def lvList(self, rating: bool = False) -> Dict[str, Dict[str, Union[List[Music], List[RaMusic]]]]:
+    def by_level(self, level: Union[str, List[str]], byid: bool = False) -> Optional[Union[List[Music], List[str]]]:
+        level_list = []
+        if isinstance(level, str):
+            level_list = [music.id if byid else music for music in self if level in music.level]
+        else:
+            level_list = [music.id if byid else music for music in self for lv in level if lv in music.level]
+        return level_list
+
+    def lv_list(self, rating: bool = False) -> Dict[str, Dict[str, Union[List[Music], List[RaMusic]]]]:
         level = {}
         for lv in levelList:
             if lv == '15':
@@ -148,7 +145,7 @@ class MusicList(List[Music]):
                 r = range(9, 6, -1)
             else:
                 r = range(6, -1, -1)
-            levellist = { f'{lv if "+" not in lv else lv[:-1]}.{_}': [] for _ in r }
+            levellist = {f'{lv if "+" not in lv else lv[:-1]}.{_}': [] for _ in r}
             musiclist = self.by_level(lv)
             for music in musiclist:
                 for diff, ds in enumerate(music.ds):
@@ -158,7 +155,7 @@ class MusicList(List[Music]):
                         else:
                             levellist[str(ds)].append(music)
             level[lv] = levellist
-        
+
         return level
 
     def random(self):
@@ -173,7 +170,7 @@ class MusicList(List[Music]):
                charter_search: Optional[str] = ...,
                genre: Optional[Union[str, List[str]]] = ...,
                bpm: Optional[Union[float, List[float], Tuple[float, float]]] = ...,
-               type: Optional[Union[str, List[str]]] = ...,
+               music_type: Optional[Union[str, List[str]]] = ...,
                diff: List[int] = ...,
                ):
         new_list = MusicList()
@@ -191,7 +188,7 @@ class MusicList(List[Music]):
                 continue
             if not in_or_equal(music.basic_info.genre, genre):
                 continue
-            if not in_or_equal(music.type, type):
+            if not in_or_equal(music.type, music_type):
                 continue
             if not in_or_equal(music.basic_info.bpm, bpm):
                 continue
@@ -217,10 +214,10 @@ def search_charts(checker: List[Chart], elem: str, diff: List[int]):
 
 
 class Alias(BaseModel):
-
     ID: Optional[str] = None
     Name: Optional[str] = None
     Alias: Optional[List[str]] = None
+
 
 class AliasList(List[Alias]):
 
@@ -230,7 +227,7 @@ class AliasList(List[Alias]):
             if music.ID == music_id:
                 alias_music.append(music)
         return alias_music
-    
+
     def by_alias(self, music_alias: str) -> Optional[List[Alias]]:
         alias_list = []
         for music in self:
@@ -250,9 +247,10 @@ async def download_music_pictrue(id: Union[int, str]) -> Union[str, BytesIO]:
             return file
         # Diving fish
         id = int(id)
-        if id > 10000 and id <= 11000:
+        if 10000 < id <= 11000:
             id -= 10000
-        async with aiohttp.request('GET', f'https://www.diving-fish.com/covers/{id:05d}.png', timeout=aiohttp.ClientTimeout(total=60)) as req:
+        async with aiohttp.request('GET', f'https://www.diving-fish.com/covers/{id:05d}.png',
+                                   timeout=aiohttp.ClientTimeout(total=60)) as req:
             if req.status == 200:
                 return BytesIO(await req.read())
             else:
@@ -294,8 +292,10 @@ async def get_music_list() -> MusicList:
             log.error('maimaiDX曲目数据获取失败，请检查网络环境。已切换至本地暂存文件')
             music_data = await openfile(music_file)
     except FileNotFoundError:
-        log.error(f'未找到文件，请自行使用浏览器访问 "https://www.diving-fish.com/api/maimaidxprober/music_data" 将内容保存为 "music_data.json" 存放在 "static" 目录下并重启bot')
-    
+        log.error(
+            f'未找到文件，请自行使用浏览器访问 "https://www.diving-fish.com/api/maimaidxprober/music_data" 将内容保存为 "music_data.json" 存放在 "static" 目录下并重启bot')
+        music_data = []
+
     # ChartStats
     try:
         try:
@@ -313,17 +313,21 @@ async def get_music_list() -> MusicList:
             log.error('maimaiDX数据获取错误，请检查网络环境。已切换至本地暂存文件')
             chart_stats = await openfile(chart_file)
     except FileNotFoundError:
-        log.error(f'未找到文件，请自行使用浏览器访问 "https://www.diving-fish.com/api/maimaidxprober/chart_stats" 将内容保存为 "chart_stats.json" 存放在 "static" 目录下并重启bot')
+        log.error(
+            f'未找到文件，请自行使用浏览器访问 "https://www.diving-fish.com/api/maimaidxprober/chart_stats" 将内容保存为 "chart_stats.json" 存放在 "static" 目录下并重启bot')
+        chart_stats = {}
 
     total_list: MusicList = MusicList(music_data)
     for num, music in enumerate(total_list):
         if music['id'] in chart_stats['charts']:
-            _stats = [_data if _data else None for _data in chart_stats['charts'][music['id']]] if {} in chart_stats['charts'][music['id']] else chart_stats['charts'][music['id']]
+            _stats = [_data if _data else None for _data in chart_stats['charts'][music['id']]] if {} in chart_stats[
+                'charts'][music['id']] else chart_stats['charts'][music['id']]
         else:
             _stats = None
-        total_list[num] = Music(stats=_stats, **total_list[num])
+        total_list[num] = Music(stats=_stats, **(total_list[num].model_dump()))
 
     return total_list
+
 
 async def get_music_alias_list() -> AliasList:
     """
@@ -340,20 +344,24 @@ async def get_music_alias_list() -> AliasList:
         log.error(e)
     except UnknownError:
         log.error('获取所有曲目别名信息错误，请检查网络环境。已切换至本地暂存文件')
+    finally:
         alias_data = await openfile(alias_file)
         if not alias_data:
-            log.error('本地暂存别名文件为空，请自行使用浏览器访问 "https://api.yuzuai.xyz/maimaidx/maimaidxalias" 获取别名数据并保存在 "static/all_alias.json" 文件中并重启bot')
+            log.error(
+                '本地暂存别名文件为空，请自行使用浏览器访问 "https://api.yuzuai.xyz/maimaidx/maimaidxalias" 获取别名数据并保存在 "static/all_alias.json" 文件中并重启bot')
             raise ValueError
 
     for id, music in local_alias_data.items():
         for name in music:
             alias_data[id]['Alias'].append(name)
-    
+
     total_alias_list = AliasList(alias_data)
     for _ in range(len(total_alias_list)):
-        total_alias_list[_] = Alias(ID=total_alias_list[_], Name=alias_data[total_alias_list[_]]['Name'], Alias=alias_data[total_alias_list[_]]['Alias'])
+        total_alias_list[_] = Alias(ID=total_alias_list[_], Name=alias_data[total_alias_list[_]]['Name'],
+                                    Alias=alias_data[total_alias_list[_]]['Alias'])
 
     return total_alias_list
+
 
 async def update_local_alias(id: str, alias_name: str) -> bool:
     try:
@@ -364,15 +372,15 @@ async def update_local_alias(id: str, alias_name: str) -> bool:
         if id not in local_alias_data:
             local_alias_data[id] = []
         local_alias_data[id].append(alias_name.lower())
-        mai.total_alias_list.by_id(id)[0].Alias.append(alias_name.lower())
+        mai.total_alias_list.by_id(int(id))[0].Alias.append(alias_name.lower())
         await writefile(local_alias_file, local_alias_data)
         return True
     except Exception as e:
         log.error(f'添加本地别名失败: {e}')
         return False
 
-class MaiMusic:
 
+class MaiMusic:
     total_list: Optional[MusicList]
 
     def __init__(self) -> None:
@@ -380,13 +388,13 @@ class MaiMusic:
         封装所有曲目信息以及猜歌数据，便于更新
         """
 
-    async def get_music(self) -> MusicList:
+    async def get_music(self) -> None:
         """
         获取所有曲目数据
         """
         self.total_list = await get_music_list()
 
-    async def get_music_alias(self) -> AliasList:
+    async def get_music_alias(self) -> None:
         """
         获取所有曲目别名
         """
@@ -407,11 +415,11 @@ class MaiMusic:
                     self.hot_music_ids.append(music.id)  # 游玩次数超过1w次加入猜歌库
         self.guess_data = list(filter(lambda x: x.id in self.hot_music_ids, self.total_list))
 
+
 mai = MaiMusic()
 
 
 class GuessData(BaseModel):
-    
     music: Music
     options: List[str]
     answer: List[str]
@@ -420,7 +428,6 @@ class GuessData(BaseModel):
 
 
 class Guess:
-
     Group: Dict[str, GuessData] = {}
 
     def __init__(self) -> None:
@@ -431,14 +438,14 @@ class Guess:
             with open(guess_file, 'w', encoding='utf-8') as f:
                 json.dump({'enable': [], 'disable': []}, f)
         self.config: Dict[str, List[int]] = json.load(open(guess_file, 'r', encoding='utf-8'))
-    
+
     async def start(self, gid: str):
         """
         开始猜歌
         """
-        self.Group[gid] = await self.guessData()
+        self.Group[gid] = await self.guess_data()
 
-    async def guessData(self) -> GuessData:
+    async def guess_data(self) -> GuessData:
         """
         获取猜歌数据
         """
@@ -453,13 +460,13 @@ class Guess:
             f'{"没" if len(music.ds) == 4 else ""}有白谱',
             f'的 BPM 是 {music.basic_info.bpm}'
         ], 6)
-        answer = mai.total_alias_list.by_id(music.id)[0].Alias
+        answer = mai.total_alias_list.by_id(int(music.id))[0].Alias
         answer.append(music.id)
         img = Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((400, 400))
         w, h = img.size
         w2, h2 = int(w / 2), int(h / 2)
         l, u = random.randrange(0, int(w / 2)), random.randrange(0, int(h / 2))
-        img = img.crop((l, u, l+w2, u+h2))
+        img = img.crop((l, u, l + w2, u + h2))
         self.is_end = False
         return GuessData(**{
             'music': music,
@@ -524,7 +531,7 @@ class GroupAlias:
         await writefile(group_alias_file, self.config)
         return '群别名推送功能已关闭'
 
-    async def alias_global_change(self, set: bool):
+    async def alias_global_change(self, set: list[int] | bool):
         self.config['global'] = set
         await writefile(group_alias_file, self.config)
 

@@ -5,11 +5,10 @@ from nonebot import NoneBot, on_startup
 from hoshino import Service, priv
 from hoshino.typing import CQEvent, MessageSegment
 
-from . import loga
 from .libraries.image import image_to_base64, text_to_image
 from .libraries.maimaidx_arcade import *
 
-sv_help= """排卡指令如下：
+sv_help = """排卡指令如下：
 添加机厅 <店名> <地址> <机台数量> 添加机厅信息
 删除机厅 <店名> 删除机厅信息
 修改机厅 <店名> 数量 <数量> ... 修改机厅信息
@@ -29,7 +28,7 @@ sv_arcade = Service('maimaiDX排卡', manage_priv=priv.ADMIN, enable_on_default=
 @on_startup
 async def _():
     loga.info('正在获取maimai所有机厅信息')
-    await arcade.getArcade()
+    await arcade.get_arcade()
     loga.info('maimai机厅数据获取完成')
 
 
@@ -50,7 +49,7 @@ async def add_arcade(bot: NoneBot, ev: CQEvent):
             msg = '格式错误：添加机厅 <店名> <地址> <机台数量> [别称1] [别称2] ...'
         else:
             if not arcade.total.search_fullname(args[0]):
-                aid = sorted(arcade.idList, reverse=True)
+                aid = sorted(arcade.id_list, reverse=True)
                 if (sid := int(aid[0])) >= 10000:
                     sid += 1
                 else:
@@ -103,7 +102,7 @@ async def _(bot: NoneBot, ev: CQEvent):
     if len(args) != 2:
         msg = '格式错误：添加/删除机厅别名 <店名> <别名>'
     elif not args[0].isdigit() and len(_arc := arcade.total.search_fullname(args[0])) > 1:
-        msg = '找到多个相同店名的机厅，请使用店铺ID更改机厅别名\n' + '\n'.join([ f'{_.id}：{_.name}' for _ in _arc ])
+        msg = '找到多个相同店名的机厅，请使用店铺ID更改机厅别名\n' + '\n'.join([f'{_.id}：{_.name}' for _ in _arc])
     else:
         msg = await update_alias(args[0], args[1], a)
     await bot.send(ev, msg, at_sender=True)
@@ -115,12 +114,12 @@ async def modify_arcade(bot: NoneBot, ev: CQEvent):
     if not priv.check_priv(ev, priv.ADMIN):
         msg = '仅允许管理员修改机厅信息'
     elif not args[0].isdigit() and len(_arc := arcade.total.search_fullname(args[0])) > 1:
-        msg = '找到多个相同店名的机厅，请使用店铺ID修改机厅\n' + '\n'.join([ f'{_.id}：{_.name}' for _ in _arc ])
+        msg = '找到多个相同店名的机厅，请使用店铺ID修改机厅\n' + '\n'.join([f'{_.id}：{_.name}' for _ in _arc])
     elif args[1] == '数量' and len(args) == 3 and args[2].isdigit():
         msg = await updata_arcade(args[0], args[2])
     else:
         msg = '格式错误：修改机厅 <店名> [数量] <数量>'
-    
+
     await bot.send(ev, msg, at_sender=True)
 
 
@@ -132,21 +131,21 @@ async def _(bot: NoneBot, ev: CQEvent):
     name = match.group(2)
     if not priv.check_priv(ev, priv.ADMIN):
         msg = '仅允许管理员订阅和取消订阅'
-    if not name.isdigit() and len(_arc := arcade.total.search_fullname(name)) > 1:
-        msg = f'找到多个相同店名的机厅，请使用店铺ID订阅\n' + '\n'.join([ f'{_.id}：{_.name}' for _ in _arc ])
+    elif not name.isdigit() and len(_arc := arcade.total.search_fullname(name)) > 1:
+        msg = f'找到多个相同店名的机厅，请使用店铺ID订阅\n' + '\n'.join([f'{_.id}：{_.name}' for _ in _arc])
     else:
-        msg = await subscribe(gid, name, sub)
-    
+        msg = await subscribe(str(gid), name, sub)
+
     await bot.send(ev, msg, at_sender=True)
 
 
 @sv_arcade.on_fullmatch(['查看订阅', '查看订阅机厅'])
 async def check_subscribe(bot: NoneBot, ev: CQEvent):
     gid = int(ev.group_id)
-    arcadeList = arcade.total.group_subscribe_arcade(group_id=gid)
-    if arcadeList:
+    arcade_list = arcade.total.group_subscribe_arcade(group_id=gid)
+    if arcade_list:
         result = [f'群{gid}订阅机厅信息如下：']
-        for a in arcadeList:
+        for a in arcade_list:
             alias = "\n  ".join(a.alias)
             result.append(f'''店名：{a.name}
     - 地址：{a.location}
@@ -193,15 +192,15 @@ async def arcade_person(bot: NoneBot, ev: CQEvent):
         person = int(match.group(3))
         if match.group(1):
             if '人数' in match.group(1) or '卡' in match.group(1):
-                arcadeName = match.group(1)[:-2] if '人数' in match.group(1) else match.group(1)[:-1]
+                arcade_name = match.group(1)[:-2] if '人数' in match.group(1) else match.group(1)[:-1]
             else:
-                arcadeName = match.group(1)
+                arcade_name = match.group(1)
             _arcade = []
             for _a in arcade_list:
-                if arcadeName == _a.name:
+                if arcade_name == _a.name:
                     _arcade.append(_a)
                     break
-                if arcadeName in _a.alias:
+                if arcade_name in _a.alias:
                     _arcade.append(_a)
                     break
             if not _arcade:
@@ -210,7 +209,7 @@ async def arcade_person(bot: NoneBot, ev: CQEvent):
                 msg = await update_person(_arcade, nickname, value, person)
 
             await bot.send(ev, msg, at_sender=True)
-    except:
+    except Exception:
         pass
 
 
@@ -254,6 +253,6 @@ async def _():
             _.by = '自动清零'
             _.time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         await arcade.total.save_arcade()
-    except:
+    except Exception:
         return
     loga.info('maimaiDX排卡数据更新完毕')

@@ -8,11 +8,9 @@ from nonebot import NoneBot, on_startup
 
 from hoshino import Service, priv
 from hoshino.service import sucmd
-from hoshino.typing import CommandSession, CQEvent, MessageSegment
+from hoshino.typing import CommandSession, CQEvent
 
-from . import *
-from .libraries.image import *
-from .libraries.maimaidx_music import alias, guess, mai, update_local_alias
+from .libraries.maimaidx_music import alias, guess, update_local_alias
 from .libraries.maimaidx_music_info import *
 from .libraries.maimaidx_player_score import *
 from .libraries.tool import *
@@ -45,7 +43,7 @@ async def _():
     mai.guess()
 
 
-@sucmd('updateData', aliases=('更新maimai数据'))
+@sucmd('updateData', aliases='更新maimai数据')
 async def _(session: CommandSession):
     await mai.get_music()
     await mai.get_music_alias()
@@ -66,7 +64,8 @@ async def dx_github(bot: NoneBot, ev: CQEvent):
 async def search_dx_song_level(bot: NoneBot, ev: CQEvent):
     args = ev.message.extract_plain_text().strip().split()
     if len(args) > 3 or len(args) == 0:
-        await bot.finish(ev, '命令格式为\n定数查歌 <定数> [页数]\n定数查歌 <定数下限> <定数上限> [页数]', at_sender=True)
+        await bot.finish(ev, '命令格式为\n定数查歌 <定数> [页数]\n定数查歌 <定数下限> <定数上限> [页数]',
+                         at_sender=True)
     page = 1
     if len(args) == 1:
         result = song_level(float(args[0]), float(args[0]))
@@ -192,15 +191,15 @@ async def random_song(bot: NoneBot, ev: CQEvent):
             tp = ['SD', 'DX']
         level = match.group(3)
         if match.group(2) == '':
-            music_data = mai.total_list.filter(level=level, type=tp)
+            music_data = mai.total_list.filter(level=level, music_type=tp)
         else:
-            music_data = mai.total_list.filter(level=level, diff=['绿黄红紫白'.index(match.group(2))], type=tp)
+            music_data = mai.total_list.filter(level=level, diff=['绿黄红紫白'.index(match.group(2))], music_type=tp)
         if len(music_data) == 0:
             msg = '没有这样的乐曲哦。'
         else:
             msg = await new_draw_music_info(music_data.random())
         await bot.send(ev, msg, at_sender=True)
-    except:
+    except Exception:
         await bot.send(ev, '随机命令错误，请检查语法', at_sender=True)
 
 
@@ -305,7 +304,7 @@ async def month_mai(bot: NoneBot, ev: CQEvent):
 @sv.on_suffix(['是什么歌', '是啥歌'])
 async def what_song(bot: NoneBot, ev: CQEvent):
     name: str = ev.message.extract_plain_text().strip().lower()
-    
+
     data = mai.total_alias_list.by_alias(name)
     if not data:
         await bot.finish(ev, '未找到此歌曲\n可以使用 添加别名 指令给该乐曲添加别名', at_sender=True)
@@ -322,7 +321,7 @@ async def what_song(bot: NoneBot, ev: CQEvent):
 @sv.on_suffix(['有什么别称', '有什么别名'])
 async def how_song(bot: NoneBot, ev: CQEvent):
     name: str = ev.message.extract_plain_text().strip().lower()
-    
+
     alias = mai.total_alias_list.by_alias(name)
     if not alias:
         if name.isdigit():
@@ -339,7 +338,7 @@ async def how_song(bot: NoneBot, ev: CQEvent):
             alias_list = '\n'.join(songs.Alias)
             msg.append(f'ID：{songs.ID}\n{alias_list}')
         await bot.finish(ev, f'找到{len(alias)}个相同别名的曲目：\n' + '\n======\n'.join(msg), at_sender=True)
-    
+
     if len(alias[0].Alias) == 1:
         await bot.finish(ev, '该曲目没有别名', at_sender=True)
 
@@ -356,7 +355,8 @@ async def apply_local_alias(bot: NoneBot, ev: CQEvent):
         await bot.finish(ev, f'未找到ID为 [{id}] 的曲目')
     server_exist = await maiApi.get_songs(id)
     if alias_name in server_exist[id]:
-        await bot.finish(ev, f'该曲目的别名 <{alias_name}> 已存在别名服务器，不能重复添加别名，如果bot未生效，请联系BOT管理员使用指令 <更新别名库>')
+        await bot.finish(ev,
+                         f'该曲目的别名 <{alias_name}> 已存在别名服务器，不能重复添加别名，如果bot未生效，请联系BOT管理员使用指令 <更新别名库>')
     local_exist = mai.total_alias_list.by_id(id)
     if local_exist and alias_name.lower() in local_exist[0].Alias:
         await bot.finish(ev, f'本地别名库已存在该别名', at_sender=True)
@@ -381,7 +381,8 @@ async def apply_alias(bot: NoneBot, ev: CQEvent):
             await bot.finish(ev, f'未找到ID为 [{id}] 的曲目')
         isexist = await maiApi.get_songs(id)
         if alias_name in isexist[id]:
-            await bot.finish(ev, f'该曲目的别名 <{alias_name}> 已存在，不能重复添加别名，如果bot未生效，请联系BOT管理员使用指令 <更新别名库>')
+            await bot.finish(ev,
+                             f'该曲目的别名 <{alias_name}> 已存在，不能重复添加别名，如果bot未生效，请联系BOT管理员使用指令 <更新别名库>')
         tag = ''.join(sample(ascii_uppercase + digits, 5))
         status = await maiApi.post_alias(id, alias_name, tag, ev.user_id)
         if isinstance(status, str):
@@ -441,7 +442,7 @@ async def alias_status(bot: NoneBot, ev: CQEvent):
 @sv.on_suffix('别名推送')
 async def alias_on(bot: NoneBot, ev: CQEvent):
     if not priv.check_priv(ev, priv.ADMIN):
-        msg = '仅允许管理员开启'
+        await bot.finish(ev, '仅允许管理员开启', at_sender=True)
     gid = ev.group_id
     args: str = ev.message.extract_plain_text().strip()
     if args == '开启':
@@ -465,13 +466,13 @@ async def _(session: CommandSession):
         return
 
 
-@sucmd('updatealias', aliases=('更新别名库'))
+@sucmd('updatealias', aliases='更新别名库')
 async def _(session: CommandSession):
     try:
         await mai.get_music_alias()
         log.info('手动更新别名库成功')
         await session.send('手动更新别名库成功')
-    except:
+    except Exception:
         log.error('手动更新别名库失败')
         await session.send('手动更新别名库失败')
 
@@ -493,9 +494,10 @@ async def alias_apply_status():
                     if gid in alias.config['disable']:
                         continue
                     try:
-                        await sv.bot.send_group_msg(group_id=gid, message='\n======\n'.join(msg) + f'\n浏览{public_addr}查看详情')
+                        await sv.bot.send_group_msg(group_id=gid,
+                                                    message='\n======\n'.join(msg) + f'\n浏览{public_addr}查看详情')
                         await asyncio.sleep(5)
-                    except: 
+                    except Exception:
                         continue
         await asyncio.sleep(5)
         if end := await maiApi.get_alias_end():
@@ -513,7 +515,7 @@ async def alias_apply_status():
                         try:
                             await sv.bot.send_group_msg(group_id=gid, message='\n======\n'.join(msg2))
                             await asyncio.sleep(5)
-                        except:
+                        except Exception:
                             continue
             await mai.get_music_alias()
     except ServerError as e:
@@ -564,7 +566,7 @@ BREAK\t5/12.5/25(外加200落)'''
 分数线 {line}% 允许的最多 TAP GREAT 数量为 {(total_score * reduce / 10000):.2f}(每个-{10000 / total_score:.4f}%),
 BREAK 50落(一共{brk}个)等价于 {(break_50_reduce / 100):.3f} 个 TAP GREAT(-{break_50_reduce / total_score * 100:.4f}%)'''
             await bot.send(ev, msg, at_sender=True)
-        except:
+        except Exception:
             await bot.send(ev, '格式错误，输入“分数线 帮助”以查看帮助信息', at_sender=True)
 
 
@@ -655,7 +657,7 @@ async def globinfo(bot: NoneBot, ev: CQEvent):
 谱面成绩标准差：{stats.std_dev:.2f}''', at_sender=True)
 
 
-@sucmd('updatetable', aliases=('更新定数表'))
+@sucmd('updatetable', aliases='更新定数表')
 async def _(session: CommandSession):
     msg = await update_rating_table()
     await session.send(msg)
@@ -701,7 +703,7 @@ async def rise_score(bot: NoneBot, ev: CQEvent):
 
     rating = match.group(1)
     score = match.group(2)
-    
+
     if rating and rating not in levelList:
         await bot.finish(ev, '无此等级', at_sender=True)
     elif match.group(3):
@@ -710,7 +712,7 @@ async def rise_score(bot: NoneBot, ev: CQEvent):
 
     if qqid != ev.user_id:
         nickname = (await bot.get_stranger_info(user_id=qqid))['nickname']
-        
+
     data = await rise_score_data(qqid, username, rating, score, nickname)
     await bot.send(ev, data, at_sender=True)
 
@@ -779,10 +781,10 @@ async def level_achievement_list(bot: NoneBot, ev: CQEvent):
     for i in ev.message:
         if i.type == 'at' and i.data['qq'] != 'all':
             qqid = int(i.data['qq'])
-    
+
     rating = match.group(1)
     page = match.group(2)
-    
+
     if rating not in levelList:
         await bot.finish(ev, '无此等级', at_sender=True)
     elif match.group(3):
@@ -805,7 +807,7 @@ async def rating_ranking(bot: NoneBot, ev: CQEvent):
         page = int(args)
     else:
         name = args.lower()
-    
+
     data = await rating_ranking_data(name, page)
     await bot.send(ev, data, at_sender=True)
 
@@ -818,7 +820,8 @@ async def guess_music(bot: NoneBot, ev: CQEvent):
     if gid in guess.Group:
         await bot.finish(ev, '该群已有正在进行的猜歌')
     await guess.start(gid)
-    await bot.send(ev, '我将从热门乐曲中选择一首歌，每隔8秒描述它的特征，请输入歌曲的 id 标题 或 别名（需bot支持，无需大小写） 进行猜歌（DX乐谱和标准乐谱视为两首歌）。猜歌时查歌等其他命令依然可用。')
+    await bot.send(ev,
+                   '我将从热门乐曲中选择一首歌，每隔8秒描述它的特征，请输入歌曲的 id 标题 或 别名（需bot支持，无需大小写） 进行猜歌（DX乐谱和标准乐谱视为两首歌）。猜歌时查歌等其他命令依然可用。')
     await asyncio.sleep(4)
     for cycle in range(7):
         if ev.group_id not in guess.config['enable'] or gid not in guess.Group or guess.Group[gid].end:
@@ -827,7 +830,8 @@ async def guess_music(bot: NoneBot, ev: CQEvent):
             await bot.send(ev, f'{cycle + 1}/7 这首歌{guess.Group[gid].options[cycle]}')
             await asyncio.sleep(8)
         else:
-            await bot.send(ev, f'''7/7 这首歌封面的一部分是：\n{MessageSegment.image(guess.Group[gid].img)}答案将在30秒后揭晓''')
+            await bot.send(ev,
+                           f'''7/7 这首歌封面的一部分是：\n{MessageSegment.image(guess.Group[gid].img)}答案将在30秒后揭晓''')
             for _ in range(30):
                 await asyncio.sleep(1)
                 if gid in guess.Group:
@@ -888,6 +892,6 @@ async def _():
     try:
         await mai.get_music()
         mai.guess()
-    except:
+    except Exception:
         return
     log.info('maimaiDX数据更新完毕')
