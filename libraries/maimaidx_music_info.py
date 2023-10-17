@@ -8,10 +8,6 @@ from .maimaidx_api_data import *
 from .maimaidx_error import *
 from .maimaidx_music import Music, RaMusic, download_music_pictrue, mai
 
-realAchievementList = {}
-for acc in [i / 10 for i in range(10, 151)]:
-    realAchievementList[f'{acc:.1f}'] = generateAchievementList(acc)
-
 
 async def draw_music_info(music: Music) -> MessageSegment:
     """
