@@ -232,7 +232,7 @@ async def arcade_query_person(bot: NoneBot, ev: CQEvent):
     if name:
         arcade_list = arcade.total.search_name(name)
         if not arcade_list:
-            await bot.finish(ev, '没有这样的机厅哦', at_sender=True)
+            return
         result = arcade.total.arcade_to_msg(arcade_list)
         await bot.send(ev, '\n'.join(result))
     else:
