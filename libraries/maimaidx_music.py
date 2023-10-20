@@ -221,7 +221,7 @@ class Alias(BaseModel):
 
 class AliasList(List[Alias]):
 
-    def by_id(self, music_id: int) -> Optional[List[Alias]]:
+    def by_id(self, music_id: str) -> Optional[List[Alias]]:
         alias_music = []
         for music in self:
             if music.ID == music_id:
@@ -372,7 +372,7 @@ async def update_local_alias(id: str, alias_name: str) -> bool:
         if id not in local_alias_data:
             local_alias_data[id] = []
         local_alias_data[id].append(alias_name.lower())
-        mai.total_alias_list.by_id(int(id))[0].Alias.append(alias_name.lower())
+        mai.total_alias_list.by_id(id)[0].Alias.append(alias_name.lower())
         await writefile(local_alias_file, local_alias_data)
         return True
     except Exception as e:
@@ -460,7 +460,7 @@ class Guess:
             f'{"没" if len(music.ds) == 4 else ""}有白谱',
             f'的 BPM 是 {music.basic_info.bpm}'
         ], 6)
-        answer = mai.total_alias_list.by_id(int(music.id))[0].Alias
+        answer = mai.total_alias_list.by_id(music.id)[0].Alias
         answer.append(music.id)
         img = Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((400, 400))
         w, h = img.size
