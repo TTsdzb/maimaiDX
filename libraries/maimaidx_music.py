@@ -239,10 +239,10 @@ class AliasList(List[Alias]):
 async def download_music_pictrue(id: Union[int, str]) -> Union[str, BytesIO]:
     try:
         # Xray
-        async with aiohttp.request('GET', f'https://download.fanyu.site/abstract/{id}_1.png',
-                                   timeout=aiohttp.ClientTimeout(total=60)) as req:
-            if req.status == 200:
-                return BytesIO(await req.read())
+        # async with aiohttp.request('GET', f'https://download.fanyu.site/abstract/{id}_1.png',
+        #                            timeout=aiohttp.ClientTimeout(total=60)) as req:
+        #     if req.status == 200:
+        #         return BytesIO(await req.read())
         # Local
         if (file := coverdir / f'{id}.png').exists():
             return file
