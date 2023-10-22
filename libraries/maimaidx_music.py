@@ -239,7 +239,8 @@ class AliasList(List[Alias]):
 async def download_music_pictrue(id: Union[int, str]) -> Union[str, BytesIO]:
     try:
         # Xray
-        async with aiohttp.request('GET', f'https://download.fanyu.site/abstract/{id}_1.png', timeout=aiohttp.ClientTimeout(total=60)) as req:
+        async with aiohttp.request('GET', f'https://download.fanyu.site/abstract/{id}_1.png',
+                                   timeout=aiohttp.ClientTimeout(total=60)) as req:
             if req.status == 200:
                 return BytesIO(await req.read())
         # Local
@@ -464,8 +465,8 @@ class Guess:
         answer.append(music.id)
         img = Image.open(await download_music_pictrue(music.id)).convert("RGBA").resize((400, 400))
         w, h = img.size
-        w2, h2 = int(w / 2), int(h / 2)
-        l, u = random.randrange(0, int(w / 2)), random.randrange(0, int(h / 2))
+        w2, h2 = int(w / 3), int(h / 3)
+        l, u = random.randrange(0, int(2 * w / 3)), random.randrange(0, int(2 * h / 3))
         img = img.crop((l, u, l + w2, u + h2))
         self.is_end = False
         return GuessData(**{
